@@ -1,0 +1,15 @@
+# Local datasets (never commit)
+/Resources/database_nifti/
+
+# Generated outputs and temporary files
+/outputs/
+/tmp/
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+**/.DS_Store
