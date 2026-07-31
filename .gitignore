@@ -1,5 +1,8 @@
 # Local datasets (never commit)
-/Resources/database_nifti/
+/data/raw/
+
+# Project environment
+/.venv/
 
 # Generated outputs and temporary files
 /outputs/
@@ -8,6 +11,8 @@
 # Python
 __pycache__/
 *.py[cod]
+.pytest_cache/
+.ruff_cache/
 .ipynb_checkpoints/
 
 # macOS
