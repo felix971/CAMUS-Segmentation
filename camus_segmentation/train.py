@@ -14,7 +14,7 @@ from .model import UNet2D
 BATCH_SIZE = 8
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-4
-NUMBER_OF_EPOCHS = 1
+NUMBER_OF_EPOCHS = 10
 FOREGROUND_CLASS_NAMES = (
     "Left ventricular cavity",
     "Myocardium",
@@ -95,6 +95,10 @@ def main() -> None:
     validation_split = (
         project_root / "data" / "splits" / "subgroup_validation.txt"
     )
+    checkpoint_path = (
+        project_root / "outputs" / "checkpoints" / "best_model.pt"
+    )
+    checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
 
     training_samples = build_samples(camus_root, training_split)
     training_dataset = CamusDataset(training_samples)
@@ -130,6 +134,8 @@ def main() -> None:
     print("Validation samples:", len(validation_dataset))
     print("Validation batches:", len(validation_loader))
 
+    best_mean_validation_dice = -1.0
+
     for epoch in range(1, NUMBER_OF_EPOCHS + 1):
         print(f"Epoch {epoch}/{NUMBER_OF_EPOCHS}")
         mean_training_loss = train_one_epoch(
@@ -147,13 +153,29 @@ def main() -> None:
             loss_function,
             device,
         )
+        mean_validation_dice = validation_dice.mean().item()
         print(f"Validation loss:    {validation_loss:.6f}")
         for class_name, dice_score in zip(
             FOREGROUND_CLASS_NAMES,
             validation_dice,
         ):
             print(f"  {class_name} Dice: {dice_score.item():.4f}")
-        print(f"  Mean foreground Dice: {validation_dice.mean().item():.4f}")
+        print(f"  Mean foreground Dice: {mean_validation_dice:.4f}")
+
+        if mean_validation_dice > best_mean_validation_dice:
+            best_mean_validation_dice = mean_validation_dice
+            torch.save(
+                {
+                    "epoch": epoch,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "validation_loss": validation_loss,
+                    "validation_dice": validation_dice.tolist(),
+                    "mean_validation_dice": mean_validation_dice,
+                },
+                checkpoint_path,
+            )
+            print(f"Saved new best checkpoint: {checkpoint_path}")
 
     peak_memory_gib = torch.cuda.max_memory_allocated(device) / 1024**3
     print(f"Peak CUDA allocation: {peak_memory_gib:.2f} GiB")
