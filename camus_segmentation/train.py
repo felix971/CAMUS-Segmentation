@@ -6,8 +6,8 @@ import torch
 from torch.utils.data import DataLoader
 
 from .data import CamusDataset, build_samples
+from .evaluation import FOREGROUND_CLASS_NAMES, evaluate_model
 from .loss import DiceCrossEntropyLoss
-from .metrics import foreground_dice_scores
 from .model import UNet2D
 
 
@@ -15,11 +15,6 @@ BATCH_SIZE = 8
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-4
 NUMBER_OF_EPOCHS = 10
-FOREGROUND_CLASS_NAMES = (
-    "Left ventricular cavity",
-    "Myocardium",
-    "Left atrium",
-)
 
 
 def train_one_epoch(
@@ -54,38 +49,6 @@ def train_one_epoch(
             )
 
     return total_loss / number_of_batches
-
-
-@torch.no_grad()
-def validate(
-    model: torch.nn.Module,
-    validation_loader: DataLoader,
-    loss_function: torch.nn.Module,
-    device: torch.device,
-) -> tuple[float, torch.Tensor]:
-    """Evaluate loss and mean foreground Dice without updating the model."""
-
-    model.eval()
-    total_loss = 0.0
-    dice_sum = torch.zeros(3, device=device)
-    number_of_samples = 0
-
-    for images, masks in validation_loader:
-        images = images.to(device)
-        masks = masks.to(device)
-
-        logits = model(images)
-        loss = loss_function(logits, masks)
-        predictions = logits.argmax(dim=1)
-        batch_dice = foreground_dice_scores(predictions, masks)
-
-        total_loss += loss.item()
-        dice_sum += batch_dice.sum(dim=0)
-        number_of_samples += images.shape[0]
-
-    mean_loss = total_loss / len(validation_loader)
-    mean_dice = dice_sum / number_of_samples
-    return mean_loss, mean_dice.cpu()
 
 
 def main() -> None:
@@ -147,7 +110,7 @@ def main() -> None:
         )
         print(f"Mean training loss: {mean_training_loss:.6f}")
 
-        validation_loss, validation_dice = validate(
+        validation_loss, validation_dice = evaluate_model(
             model,
             validation_loader,
             loss_function,
