@@ -55,9 +55,9 @@ def main() -> None:
 
     output_path = (
         project_root
-        / "outputs"
-        / "predictions"
-        / f"{sample.patient_id}_{sample.view}_{sample.phase}.png"
+        / "docs"
+        / "assets"
+        / "validation_prediction.png"
     )
     output_path.parent.mkdir(parents=True, exist_ok=True)
 

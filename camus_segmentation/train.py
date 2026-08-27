@@ -1,5 +1,6 @@
 """Train the CAMUS segmentation model."""
 
+import argparse
 from pathlib import Path
 
 import torch
@@ -11,10 +12,38 @@ from .loss import DiceCrossEntropyLoss
 from .model import UNet2D
 
 
-BATCH_SIZE = 8
-LEARNING_RATE = 1e-3
-WEIGHT_DECAY = 1e-4
-NUMBER_OF_EPOCHS = 10
+def parse_arguments() -> argparse.Namespace:
+    """Read training settings from the command line."""
+
+    parser = argparse.ArgumentParser(
+        description="Train the CAMUS 2D U-Net.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--epochs",
+        type=int,
+        default=10,
+        help="Number of complete passes through the training set.",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=8,
+        help="Number of images used for one parameter update.",
+    )
+    parser.add_argument(
+        "--learning-rate",
+        type=float,
+        default=1e-3,
+        help="AdamW learning rate.",
+    )
+    parser.add_argument(
+        "--weight-decay",
+        type=float,
+        default=1e-4,
+        help="AdamW decoupled weight decay.",
+    )
+    return parser.parse_args()
 
 
 def train_one_epoch(
@@ -52,6 +81,7 @@ def train_one_epoch(
 
 
 def main() -> None:
+    arguments = parse_arguments()
     project_root = Path(__file__).resolve().parents[1]
     camus_root = project_root / "data" / "raw" / "camus"
     training_split = project_root / "data" / "splits" / "subgroup_training.txt"
@@ -67,14 +97,14 @@ def main() -> None:
     training_dataset = CamusDataset(training_samples)
     training_loader = DataLoader(
         training_dataset,
-        batch_size=BATCH_SIZE,
+        batch_size=arguments.batch_size,
         shuffle=True,
     )
     validation_samples = build_samples(camus_root, validation_split)
     validation_dataset = CamusDataset(validation_samples)
     validation_loader = DataLoader(
         validation_dataset,
-        batch_size=BATCH_SIZE,
+        batch_size=arguments.batch_size,
         shuffle=False,
     )
 
@@ -83,11 +113,22 @@ def main() -> None:
     loss_function = DiceCrossEntropyLoss()
     optimizer = torch.optim.AdamW(
         model.parameters(),
-        lr=LEARNING_RATE,
+        lr=arguments.learning_rate,
         betas=(0.9, 0.999),
         eps=1e-8,
-        weight_decay=WEIGHT_DECAY,
+        weight_decay=arguments.weight_decay,
     )
+    training_config = {
+        "epochs": arguments.epochs,
+        "batch_size": arguments.batch_size,
+        "image_size": list(training_dataset.image_size),
+        "loss": "DiceCrossEntropyLoss",
+        "optimizer": "AdamW",
+        "learning_rate": arguments.learning_rate,
+        "weight_decay": arguments.weight_decay,
+        "betas": [0.9, 0.999],
+        "eps": 1e-8,
+    }
 
     torch.cuda.reset_peak_memory_stats(device)
 
@@ -96,11 +137,16 @@ def main() -> None:
     print("Training batches:", len(training_loader))
     print("Validation samples:", len(validation_dataset))
     print("Validation batches:", len(validation_loader))
+    print("Epochs:          ", arguments.epochs)
+    print("Batch size:      ", arguments.batch_size)
+    print("Learning rate:   ", arguments.learning_rate)
+    print("Weight decay:    ", arguments.weight_decay)
+    print("Checkpoint:      ", checkpoint_path)
 
     best_mean_validation_dice = -1.0
 
-    for epoch in range(1, NUMBER_OF_EPOCHS + 1):
-        print(f"Epoch {epoch}/{NUMBER_OF_EPOCHS}")
+    for epoch in range(1, arguments.epochs + 1):
+        print(f"Epoch {epoch}/{arguments.epochs}")
         mean_training_loss = train_one_epoch(
             model,
             training_loader,
@@ -135,6 +181,7 @@ def main() -> None:
                     "validation_loss": validation_loss,
                     "validation_dice": validation_dice.tolist(),
                     "mean_validation_dice": mean_validation_dice,
+                    "training_config": training_config,
                 },
                 checkpoint_path,
             )

@@ -1,5 +1,6 @@
 # Local datasets (never commit)
 /data/raw/
+/data/nnunet/
 
 # Project environment
 /.venv/
