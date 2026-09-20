@@ -1,0 +1,2 @@
+# Normalize published CSV copies without modifying original run artifacts.
+docs/results/*.csv text eol=lf

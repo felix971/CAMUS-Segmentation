@@ -1,0 +1,147 @@
+{
+  "experiment": "unet_resume10_to50_seed42",
+  "verified_on": "2026-09-20",
+  "status": "completed_and_validation_recomputed",
+  "run_directory": "outputs/runs/unet_resume10_to50_seed42",
+  "continuation": {
+    "source_epoch": 10,
+    "first_new_epoch": 11,
+    "last_epoch": 50,
+    "recorded_new_epochs": 40,
+    "last_global_step": 10000,
+    "selected_best_epoch": 23,
+    "selected_best_step": 4600,
+    "rng_initialization": "legacy_seed_no_historical_rng",
+    "training_config": {
+      "epochs": 50,
+      "batch_size": 8,
+      "image_size": [
+        512,
+        416
+      ],
+      "loss": "DiceCrossEntropyLoss",
+      "optimizer": "AdamW",
+      "learning_rate": 0.001,
+      "weight_decay": 0.0001,
+      "betas": [
+        0.9,
+        0.999
+      ],
+      "eps": 1e-08,
+      "model": "UNet2D(in_channels=1,num_classes=4,base_channels=32)",
+      "preprocessing": "image/255;bilinear(align_corners=False);mask-nearest;no-augmentation",
+      "seed": 42
+    }
+  },
+  "baseline": {
+    "checkpoint_sha256": "8c4495b60647e49ede8c315c6c703f5893485938a89e282ac8e9b7f618afe78d",
+    "mean_validation_dice": 0.8634774088859558,
+    "validation_dice": {
+      "Left ventricular cavity": 0.9138287901878357,
+      "Myocardium": 0.8206327557563782,
+      "Left atrium": 0.8559705018997192
+    }
+  },
+  "selected_checkpoint": {
+    "path": "outputs/runs/unet_resume10_to50_seed42/best.pt",
+    "sha256": "c53cbf583651fca20a14e4fdcc534b499850b997e91c4796169c898cd24bd21d",
+    "epoch": 23
+  },
+  "validation": {
+    "split_sha256": "1078b246127e15ef3f1a0838699f64a9c2b18071b3883957edb70b475f2b9fac",
+    "patients": 50,
+    "images": 200,
+    "metrics": {
+      "loss": 0.2625378233194351,
+      "foreground_dice": {
+        "Left ventricular cavity": 0.9257879257202148,
+        "Myocardium": 0.84035724401474,
+        "Left atrium": 0.8948763012886047
+      },
+      "mean_foreground_dice": 0.8870071768760681
+    },
+    "protocol": {
+      "grid": "resized",
+      "prediction": "argmax",
+      "foreground_class_ids": [
+        1,
+        2,
+        3
+      ],
+      "background_excluded": true,
+      "smooth": 1e-06,
+      "empty_class_score": 1.0,
+      "reduction": "per-image Dice, mean over samples, then mean over foreground classes",
+      "image_interpolation": "bilinear",
+      "image_align_corners": false,
+      "mask_interpolation": "nearest",
+      "loss": "DiceCrossEntropyLoss",
+      "loss_reduction": "sample-weighted mean of batch losses"
+    },
+    "image_size": [
+      512,
+      416
+    ]
+  },
+  "validation_mean_gain_percentage_points": 2.3529767990112305,
+  "last_epoch": {
+    "train_loss": 0.06158434215933085,
+    "val_loss": 0.41686188578605654,
+    "val_mean_dice": 0.877041757106781
+  },
+  "selected_epoch_training_loss": 0.18629513196647168,
+  "recorded_training_validation_seconds": 962.7539596239803,
+  "provenance": {
+    "git": {
+      "head": "7cc358a868de3822964f5893e9396cda00106ca2",
+      "dirty": true
+    },
+    "source_hashes": {
+      "camus_segmentation/__init__.py": "7ce58591402172ad515c4a61a76eb9a4696f253a33cbff234decec78921b3b0b",
+      "camus_segmentation/data.py": "610d125a8f7ab16c46aef5f567992cf4cc8b6c0a5abc1ca66155a1e89bcd330a",
+      "camus_segmentation/evaluate_test.py": "771eaa8490f9bf03deeac30086f7d369bb7f4e1472983decd8f932549d10109d",
+      "camus_segmentation/evaluation.py": "cf66a9abe76a2f0de37d255b2883ee556eb2e1f1f30bef5c0a942f4766437743",
+      "camus_segmentation/experiment.py": "c6661de6cf111dd9aaf44343a3266f40381b100ef49fb99ba529839575887ba3",
+      "camus_segmentation/loss.py": "3c98e534b0a81102155ec9e151fb4e46055ab0eeec1126dc35f5ace9626a5552",
+      "camus_segmentation/metrics.py": "4aeda55599e67130c1789f127bae69aed91d315113bf75be98370254091d2c1b",
+      "camus_segmentation/model.py": "6ba36f31bdf27a4eb89208c38fc0c70180adb3c0ba50313437246f977332aa77",
+      "camus_segmentation/plot_history.py": "ff7b5cb3ce3a539e910bee13f63c30e8b88979a3842848a2b5ae16425d103fc1",
+      "camus_segmentation/train.py": "0c32b081295848bd1237d9a13e5c846895cf06f86fa9385aae13b60691bd7246",
+      "camus_segmentation/visualize_prediction.py": "27f5a742695399461e3d35cff26c05439ebad82a988ae073ddf7e4ef91729cae"
+    },
+    "environment": {
+      "python": "3.12.13",
+      "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.43",
+      "packages": {
+        "torch": "2.12.1+cu132",
+        "numpy": "2.5.1",
+        "nibabel": "5.4.2"
+      },
+      "device": "cuda",
+      "device_name": "NVIDIA GeForce RTX 4090",
+      "cuda_version": "13.2",
+      "cudnn_version": 92000,
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": false,
+      "deterministic_algorithms": false,
+      "cudnn_allow_tf32": true,
+      "matmul_allow_tf32": false,
+      "torch_threads": 24,
+      "variables": {
+        "CUDA_VISIBLE_DEVICES": null,
+        "CUBLAS_WORKSPACE_CONFIG": null,
+        "OMP_NUM_THREADS": null,
+        "MKL_NUM_THREADS": null,
+        "PYTHONHASHSEED": null
+      }
+    },
+    "source_checkpoint_sha256": "8c4495b60647e49ede8c315c6c703f5893485938a89e282ac8e9b7f618afe78d"
+  },
+  "test_evaluated": false,
+  "limitations": [
+    "Validation-selected single-run result, not held-out test performance.",
+    "Legacy epoch10 lacks RNG state, so continuation seed42 is not an exact replay from epoch1.",
+    "Resized-grid metrics; not a controlled architecture comparison with nnU-Net.",
+    "History contains only actual epochs11-50; no invented epochs1-10."
+  ]
+}

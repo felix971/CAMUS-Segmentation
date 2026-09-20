@@ -1,206 +1,114 @@
 # CAMUS 2D Echocardiography Segmentation
 
-An end-to-end PyTorch U-Net baseline for segmenting the left ventricular
-cavity, myocardium, and left atrium in 2D echocardiography from the CAMUS
-dataset.
+Hand-built PyTorch U-Net and nnU-Net v2 baselines for segmenting the left
+ventricular cavity, myocardium, and left atrium in CAMUS echocardiography.
+The emphasis is an explainable pipeline and traceable experiments, not a claim
+of clinical readiness or a new state-of-the-art architecture.
 
-This project was developed incrementally to make the complete pipeline
-explainable: patient-level data splitting, NIfTI loading, tensor shapes, U-Net
-forward propagation, loss calculation, backpropagation, CUDA training,
-checkpoint selection, and held-out evaluation.
+## Start here / 从这里开始
 
-> This implementation is an educational research project and is not a clinical
-> system. Use of CAMUS data remains subject to its non-commercial research
-> terms.
-
-## Results
-
-The reported model is the checkpoint with the highest mean foreground Dice on
-the validation split. It was then evaluated on the held-out test split without
-further model selection.
-
-| Metric | Validation | Test |
-|---|---:|---:|
-| Dice + CrossEntropy loss | 0.309221 | 0.308204 |
-| Left ventricular cavity Dice | 0.9138 | 0.9089 |
-| Myocardium Dice | 0.8206 | 0.8199 |
-| Left atrium Dice | 0.8560 | 0.8598 |
-| Mean foreground Dice | 0.8635 | **0.8629** |
-
-Dice is calculated separately for each image and foreground class, averaged
-across all images, and then averaged across the three foreground classes.
-Background is excluded from the reported mean.
-
-### Qualitative validation example
-
-![Ultrasound image, ground-truth mask, and predicted mask](docs/assets/validation_prediction.png)
-
-The example shows `patient0200`, the two-chamber view at end-diastole. Its mean
-foreground Dice is 0.8881. The figure is a qualitative example; the table above
-contains the full validation and test results.
-
-## Dataset and task
-
-CAMUS contains 500 patients. This project uses four annotated frames per
-patient: two-chamber and four-chamber views at end-diastole and end-systole.
-
-| Split | Patients | Annotated images |
-|---|---:|---:|
-| Training | 400 | 1,600 |
-| Validation | 50 | 200 |
-| Test | 50 | 200 |
-
-The split is patient-level, so no patient appears in more than one subset. The
-four segmentation labels are:
-
-| Label | Structure |
-|---:|---|
-| 0 | Background |
-| 1 | Left ventricular cavity |
-| 2 | Myocardium |
-| 3 | Left atrium |
-
-The CAMUS data is not redistributed by this repository. Access instructions are
-available from the
-[official CAMUS dataset page](https://www.creatis.insa-lyon.fr/Challenge/camus/databases.html).
-After accepting the dataset terms, place the patient directories under:
-
-```text
-data/raw/camus/patient0001/
-...
-data/raw/camus/patient0500/
-```
-
-## Model
-
-The model is a four-level 2D U-Net implemented directly with PyTorch:
-
-```text
-Input: 1 x 512 x 416
-Encoder channels: 32 -> 64 -> 128 -> 256
-Bottleneck channels: 512
-Decoder channels: 256 -> 128 -> 64 -> 32
-Output: 4 x 512 x 416 logits
-```
-
-Each encoder and decoder block contains two `3 x 3` convolutions, each followed
-by ReLU. Four `2 x 2` max-pooling operations reduce spatial resolution, and
-transposed convolutions restore it. Skip connections concatenate encoder
-features with decoder features at matching resolutions. A final `1 x 1`
-convolution produces one logit map per class.
-
-The model has **7,759,620 trainable parameters**.
-
-## Training configuration
-
-| Setting | Value |
+| What you need | Entry point |
 |---|---|
-| Input size | `512 x 416` |
-| Image resize | Bilinear interpolation |
-| Mask resize | Nearest-neighbor interpolation |
-| Image normalization | Divide intensity values by 255 |
-| Data augmentation | None for this baseline |
-| Loss | CrossEntropy + foreground Soft Dice loss |
-| Optimizer | AdamW |
-| Learning rate | `1e-3` |
-| Weight decay | `1e-4` |
-| Batch size | 8 |
-| Epochs | 10 |
-| Checkpoint selection | Highest validation mean foreground Dice |
-| Training GPU | NVIDIA GeForce RTX 4090 |
+| 项目目录与各文件职责 | [Repository guide / 仓库导航](docs/repository-guide.md) |
+| 训练、恢复、绘图与评估操作 | [Training guide / 训练操作](docs/training.md) |
+| 旧基线与新实验的区别 | [Experiment register / 实验登记](docs/experiments.md) |
+| 完整方法、原始配置与已核验结果 | [Completed baselines](docs/baselines.md) |
+| 数据、tensor 和手写 U-Net 学习过程 | [Notebook guide](notebooks/README.md) |
+| 术语与运行环境 | [Glossary](docs/glossary.md) · [CUDA decision](docs/adr/0001-cuda-runtime-strategy.md) |
 
-The best checkpoint is written to
-`outputs/checkpoints/best_model.pt`. Generated checkpoints remain local and are
-excluded from Git. Each checkpoint also records the training configuration used
-to create it.
+## Verified historical results
 
-## Reproduce the baseline
+Same patient-level split: **400 training / 50 validation / 50 test patients**.
+Each patient provides 2CH/4CH views at ED/ES, yielding 1,600 / 200 / 200 frames.
 
-Install [`uv`](https://docs.astral.sh/uv/), clone the repository, and reproduce
-the locked Python 3.12 environment:
+| Test Dice | Hand-built U-Net, 10 epochs | nnU-Net v2 2D, fold 0 |
+|---|---:|---:|
+| Left ventricular cavity | 0.9089 | 0.9446 |
+| Myocardium | 0.8199 | 0.8920 |
+| Left atrium | 0.8598 | 0.9239 |
+| Mean foreground | **0.8629** | **0.9202** |
+
+Dice is calculated per image and foreground class, then averaged. Background
+is excluded. These are **historical baseline results**, not results from the new
+50-epoch continuation. Full provenance and limitations are in
+[the experiment register](docs/experiments.md).
+
+This is a **pipeline-level comparison**, not an architecture ablation: training
+budgets, optimizer, augmentation and preprocessing differ. The hand-built model
+is evaluated on resized `512 × 416` masks; nnU-Net on the native image grid.
+The nominal budgets are 2,000 versus 250,000 optimizer updates. One split and
+one run do not establish seed stability or external generalization.
+
+![Historical U-Net validation example](docs/assets/validation_prediction.png)
+
+## Completed continuation experiment
+
+The epoch-10 model and AdamW state were restored and training completed through
+**epoch 50 / 10,000 cumulative updates**. The validation-selected best is
+**epoch 23**, not the final checkpoint. Independently recomputed mean foreground
+validation Dice increased from **0.8635 to 0.8870** (+2.35 percentage points)
+on 50 validation patients / 200 images. **The new model has not been tested on
+the test split.** Later training loss continued falling while validation loss
+rose; further budget alone is not supported by this curve.
+
+[Recorded curves and interpretation](docs/experiments.md) ·
+[Metrics + provenance JSON](docs/results/unet_resume10_to50.json) ·
+[Epoch history CSV](docs/results/unet_resume10_to50_history.csv)
+
+New runs belong in `outputs/runs/<run-name>/`, never in the old checkpoint directory.
+
+The old checkpoint lacks RNG state. Seed 42 initializes the continuation
+stage only; this is not an exact reconstruction of an uninterrupted run from
+epoch 1. Historical missing curves are not fabricated. Training uses only the
+training and validation sets; test evaluation remains a separate explicit step.
+
+See [the training guide](docs/training.md) for the exact command, safe restart
+procedure, and the meanings of `baseline.pt`, `best.pt`, and `last.pt`.
+Check the run's `summary.json` and `history.csv` for actual completion and scores;
+a configuration targeting epoch 50 is not evidence that epoch 50 finished.
+
+## Environment and data
+
+Python 3.12; locked dependencies are in `uv.lock`:
 
 ```bash
 uv sync --locked
+.venv/bin/python -m camus_segmentation.train --help
+.venv/bin/python -m unittest discover -s tests -v
 ```
 
-Train the model with the baseline configuration:
+PyTorch's prebuilt CUDA runtime requires a compatible NVIDIA driver, not a
+separate system CUDA Toolkit. The numerical training recipe does not add AMP,
+augmentation, or a scheduler during the budget extension.
 
-```bash
-uv run --frozen python -m camus_segmentation.train \
-  --epochs 10 \
-  --batch-size 8 \
-  --learning-rate 1e-3 \
-  --weight-decay 1e-4
-```
-
-These values are the defaults, so the shorter command without flags produces
-the same configuration. Use `--help` to list the four training options.
-
-Evaluate the selected checkpoint on the held-out test split:
-
-```bash
-uv run --frozen python -m camus_segmentation.evaluate_test
-```
-
-Generate the qualitative validation figure:
-
-```bash
-uv run --frozen python -m camus_segmentation.visualize_prediction
-```
-
-The project uses PyTorch 2.12.1 with its prebuilt CUDA 13.2 runtime. A compatible
-NVIDIA driver is required for GPU execution. A system CUDA Toolkit and `nvcc`
-are not required because the project does not compile custom CUDA code.
+Download CAMUS from its [official dataset page](https://www.creatis.insa-lyon.fr/Challenge/camus/databases.html)
+after accepting the terms. Place patient folders in `data/raw/camus/`.
+The repository does **not** redistribute CAMUS data or trained checkpoints.
+Existing nnU-Net artifacts under `data/nnunet/` should be reused; do not rerun
+an entire notebook merely because its kernel was restarted.
 
 ## Repository layout
 
 ```text
-dl-segmentation-camus/
-├── camus_segmentation/
-│   ├── data.py                  # CAMUS sample discovery and tensor loading
-│   ├── model.py                 # Four-level 2D U-Net
-│   ├── loss.py                  # CrossEntropy + Soft Dice loss
-│   ├── metrics.py               # Hard foreground Dice metric
-│   ├── evaluation.py            # Shared validation and test loop
-│   ├── train.py                 # Training and best-checkpoint selection
-│   ├── evaluate_test.py         # Held-out test evaluation
-│   └── visualize_prediction.py  # Single-image qualitative inference
-├── data/
-│   ├── raw/camus/               # Local CAMUS data; never committed
-│   └── splits/                  # Patient-level split files
-├── docs/
-│   ├── assets/                  # Curated README figures
-│   └── adr/                     # Architecture decision records
-├── notebooks/
-│   └── 01_understand_camus_dataset.ipynb
-├── outputs/                     # Local checkpoints; never committed
-├── CAMUS_LICENSE.md
-├── pyproject.toml
-└── uv.lock
+camus_segmentation/    # Reusable model, training, evaluation and plotting
+notebooks/            # Preserved learning and nnU-Net workflows
+examples/             # Small standalone learning examples
+tests/                # Lightweight CPU regression tests
+docs/                 # Navigation, commands, methods and experiment register
+data/splits/          # Versioned patient-level split definitions
+data/raw/camus/       # Local licensed data (ignored by Git)
+data/nnunet/          # Existing nnU-Net workspace (ignored)
+outputs/baselines/    # Frozen historical weights (ignored)
+outputs/runs/         # One independent directory per experiment segment (ignored)
+outputs/checkpoints/  # Legacy epoch-10 path; preserved for old notebooks (ignored)
 ```
-
-The notebook is the learning workspace; `camus_segmentation/` contains the
-formal reusable implementation. Additional explanations are available in the
-[project glossary](docs/glossary.md) and the
-[CUDA runtime decision record](docs/adr/0001-cuda-runtime-strategy.md).
-
-## Current limitations
-
-- Results come from one fixed patient split and one training run.
-- No data augmentation or learning-rate schedule is used.
-- Exact deterministic seeds and repeated-run variance are not yet reported.
-- The model has not been evaluated on an external dataset.
-- The results do not establish clinical validity or state-of-the-art
-  performance.
 
 ## Dataset citation and terms
 
-Any use of the CAMUS database must cite:
-
 > S. Leclerc, E. Smistad, J. Pedrosa, A. Ostvik, et al. “Deep Learning for
-> Segmentation using an Open Large-Scale Dataset in 2D Echocardiography.” IEEE
-> Transactions on Medical Imaging, 38(9), 2198–2210, 2019.
+> Segmentation using an Open Large-Scale Dataset in 2D Echocardiography.”
+> IEEE Transactions on Medical Imaging, 38(9), 2198–2210, 2019.
 > https://doi.org/10.1109/TMI.2019.2900516
 
-See [CAMUS_LICENSE.md](CAMUS_LICENSE.md) for the local copy of the dataset
-terms. The dataset is subject to CC BY-NC-SA 4.0 and additional CAMUS terms.
+See [CAMUS_LICENSE.md](CAMUS_LICENSE.md). Educational/non-commercial research
+only, subject to the CAMUS terms. This is not a clinical system.
