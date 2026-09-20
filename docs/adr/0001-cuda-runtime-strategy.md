@@ -1,36 +1,36 @@
-# ADR-0001：使用 PyTorch 自带的 CUDA Runtime
+# ADR-0001: Use the CUDA Runtime Bundled with PyTorch
 
-- 状态：已接受
-- 日期：2026-07-29
+- Status: Accepted
+- Date: 2026-07-29
 
-## 背景
+## Context
 
-开发机器运行 Ubuntu 26.04 LTS，配备 NVIDIA GeForce RTX 4090。NVIDIA
-Driver 版本为 595.84，`nvidia-smi` 报告最高支持 CUDA 13.2。系统当前没有
-安装 `nvcc`。
+The development machine runs Ubuntu 26.04 LTS and has an NVIDIA GeForce RTX 4090. The NVIDIA
+Driver version is 595.84, and `nvidia-smi` reports support for up to CUDA 13.2. At the time of this decision,
+`nvcc` is not installed on the system.
 
-项目需要使用 GPU 训练 CAMUS 超声心动图分割模型，但目前不需要编写自定义
-CUDA kernel 或从源码编译 PyTorch CUDA 扩展。
+The project requires GPU training for CAMUS echocardiography segmentation models, but does not currently require custom
+CUDA kernels or compilation of PyTorch CUDA extensions from source.
 
-## 决策
+## Decision
 
-普通模型开发和训练使用官方预编译的 PyTorch CUDA 构建，以及该构建携带的
-CUDA Runtime 和相关数学库。
+Use an official precompiled PyTorch CUDA build for standard model development and training, together with
+its bundled CUDA Runtime and related mathematical libraries.
 
-现阶段不安装系统级 CUDA Toolkit，也不因为缺少 `nvcc` 而安装
-`nvidia-cuda-toolkit`。NVIDIA Driver 继续作为系统级共享依赖。
+Do not install a system-wide CUDA Toolkit at this stage, or install
+`nvidia-cuda-toolkit` merely because `nvcc` is absent. The NVIDIA Driver remains a shared system-level dependency.
 
-## 原因
+## Rationale
 
-- 预编译 PyTorch 已提供普通训练所需的 CUDA 实现。
-- 避免引入一套当前不需要的系统级 CUDA 工具链。
-- 减少 Toolkit、PyTorch Runtime 和 Driver 版本概念混淆。
-- 项目依赖可以在隔离环境中明确记录和复现。
+- Precompiled PyTorch already provides the CUDA implementations needed for standard training.
+- This avoids introducing a system-level CUDA toolchain that is not currently needed.
+- It reduces confusion between Toolkit, PyTorch Runtime, and Driver versions.
+- Project dependencies can be explicitly recorded and reproduced in an isolated environment.
 
-## 影响
+## Consequences
 
-- 可以进行普通 PyTorch GPU 训练和推理。
-- Python 环境不隔离系统 NVIDIA Driver。
-- 如果以后需要编译 `.cu` 文件或自定义 CUDA 扩展，需要重新评估并安装兼容
-  的 CUDA Toolkit。
-- 仍需在安装 PyTorch 后验证实际 Runtime 版本、GPU 可见性和基本 GPU 运算。
+- Standard PyTorch GPU training and inference are supported.
+- The Python environment does not isolate the system NVIDIA Driver.
+- If compiling `.cu` files or custom CUDA extensions becomes necessary, revisit this decision and install
+  a compatible CUDA Toolkit.
+- After installing PyTorch, the actual Runtime version, GPU visibility, and basic GPU operations must still be verified.

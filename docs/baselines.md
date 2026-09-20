@@ -1,6 +1,6 @@
-# 已完成基线：方法、配置与结果
+# Completed Baselines: Methods, Configurations, and Results
 
-这些是原手写 U-Net **10 epoch** 与 nnU-Net 单折基线的历史结果，不是新续训实验的结果。
+These are historical results from the original **10-epoch** hand-built U-Net and the single-fold nnU-Net baseline, not results from the new continuation experiment.
 
 ## Results
 

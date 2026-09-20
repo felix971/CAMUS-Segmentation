@@ -5,16 +5,16 @@ ventricular cavity, myocardium, and left atrium in CAMUS echocardiography.
 The emphasis is an explainable pipeline and traceable experiments, not a claim
 of clinical readiness or a new state-of-the-art architecture.
 
-## Start here / 从这里开始
+## Start here
 
 | What you need | Entry point |
 |---|---|
-| 项目目录与各文件职责 | [Repository guide / 仓库导航](docs/repository-guide.md) |
-| 训练、恢复、绘图与评估操作 | [Training guide / 训练操作](docs/training.md) |
-| 旧基线与新实验的区别 | [Experiment register / 实验登记](docs/experiments.md) |
-| 完整方法、原始配置与已核验结果 | [Completed baselines](docs/baselines.md) |
-| 数据、tensor 和手写 U-Net 学习过程 | [Notebook guide](notebooks/README.md) |
-| 术语与运行环境 | [Glossary](docs/glossary.md) · [CUDA decision](docs/adr/0001-cuda-runtime-strategy.md) |
+| Project layout and file responsibilities | [Repository guide](docs/repository-guide.md) |
+| Training, resuming, plotting, and evaluation | [Training guide](docs/training.md) |
+| Historical baselines versus new experiments | [Experiment register](docs/experiments.md) |
+| Detailed methods, original configurations, and verified results | [Completed baselines](docs/baselines.md) |
+| Learning about data, tensors, and the hand-built U-Net | [Notebook guide](notebooks/README.md) |
+| Terminology and runtime environment | [Glossary](docs/glossary.md) · [CUDA decision](docs/adr/0001-cuda-runtime-strategy.md) |
 
 ## Verified historical results
 

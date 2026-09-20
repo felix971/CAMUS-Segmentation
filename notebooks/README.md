@@ -1,18 +1,18 @@
-# Notebook 使用说明
+# Notebook Usage Guide
 
-本目录保留已有学习记录和昂贵运行的输出。正式手写 U-Net 训练入口在 Python 包，不要求重新运行 notebook。
+This directory preserves existing learning records and outputs from computationally expensive runs. The formal training entry point for the hand-built U-Net is in the Python package; rerunning the notebooks is not required.
 
-| 文件 | 目的 | 什么时候运行 |
+| File | Purpose | When to run it |
 |---|---|---|
-| `01_understand_camus_dataset.ipynb` | 数据、mask、tensor、卷积、逐步构建 U-Net、单步梯度更新 | 学习概念或检查数据时 |
-| `02_train_camus_with_nnunetv2.ipynb` | nnU-Net v2 单折 2D 完整流程与已有输出 | 需要对应步骤时，先检查已有产物 |
-| `reference/script_camus_ef.ipynb` | EF / Simpson 双平面法参考代码 | 学习参考，不代表本项目已完成 EF 临床验证 |
+| `01_understand_camus_dataset.ipynb` | Data, masks, tensors, convolutions, step-by-step U-Net construction, and a single gradient update | When learning concepts or inspecting the data |
+| `02_train_camus_with_nnunetv2.ipynb` | The complete single-fold 2D nnU-Net v2 workflow and existing outputs | When a specific step is needed; inspect existing artifacts first |
+| `reference/script_camus_ef.ipynb` | Reference code for EF / Simpson's biplane method | For learning and reference; it does not mean that this project has completed clinical validation of EF |
 
-- Markdown 的 `Step n` 是语义步骤；`In[n]` 只是执行计数，重启会变化。
-- kernel 重启会丢变量，但不会删除 `data/nnunet/` 和 checkpoint。不要因为变量未定义就重做预处理或训练。
-- 02 的 Step 10 中手写 U-Net 一列是**原 10 epoch 的历史参考值**，不是自动读取最新续训模型。不要将它当成新 50 轮实验的结果。
-- 原 notebook 输出暂不清除，也不在整理过程中批量重跑。
-- notebook 含本机路径配置；换电脑后先检查并修改 `PROJECT_ROOT`，不要把历史输出中的绝对路径当作通用安装路径。
-- 已保存的超声、标注和预测示例来自CAMUS的匿名研究病例，仅用于非商业研究展示；数据引用及CC BY-NC-SA 4.0等适用条款见[CAMUS_LICENSE.md](../CAMUS_LICENSE.md)。不随仓库分发完整原始数据或模型权重。
+- `Step n` in Markdown identifies a logical step; `In[n]` is only an execution count and changes after a restart.
+- Restarting the kernel loses variables, but does not delete `data/nnunet/` or checkpoints. Do not repeat preprocessing or training just because a variable is undefined.
+- The hand-built U-Net column in Step 10 of notebook 02 contains **historical reference values from the original 10-epoch run**; it does not automatically read the latest model from resumed training. Do not treat it as the result of the new 50-epoch experiment.
+- Existing notebook outputs are retained for now, and the notebooks are not rerun in bulk during cleanup.
+- The notebooks contain machine-specific path settings. When switching computers, check and update `PROJECT_ROOT` first; do not treat absolute paths in historical outputs as universal installation paths.
+- The saved ultrasound, annotation, and prediction examples come from anonymized CAMUS research cases and are shown only for noncommercial research purposes. See [CAMUS_LICENSE.md](../CAMUS_LICENSE.md) for the dataset citation and applicable terms, including CC BY-NC-SA 4.0. The complete raw dataset and model weights are not distributed with the repository.
 
-下一步：[正式训练操作](../docs/training.md) · [仓库导航](../docs/repository-guide.md) · [实验登记](../docs/experiments.md)
+Next: [Formal Training Guide](../docs/training.md) · [Repository Guide](../docs/repository-guide.md) · [Experiment Register](../docs/experiments.md)

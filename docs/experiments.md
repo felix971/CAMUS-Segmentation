@@ -1,64 +1,64 @@
-# 实验登记：不要把旧基线和新续训混在一起
+# Experiment Register: Keep the Old Baseline Separate from Resumed Training
 
-## 1. 已冻结的手写 U-Net 10 epoch 基线
+## 1. Frozen Hand-built U-Net 10-Epoch Baseline
 
-- 原始路径：`outputs/checkpoints/best_model.pt`（为旧 notebook 保留，不再作为新训练输出）。
-- 冻结副本：`outputs/baselines/unet_10ep/best.pt`（只读副本）。
-- SHA-256：`8c4495b60647e49ede8c315c6c703f5893485938a89e282ac8e9b7f618afe78d`。
-- 保存 epoch：10；AdamW state 中更新次数：2000。
-- 保存的验证平均前景 Dice：`0.8634774088859558`。
-- 已独立核验的测试平均前景 Dice：`0.8628640993226364`。
-- 评估网格：`512 × 416`；按图、按前景类计算 Dice，再取平均；不含背景。
-- 旧 checkpoint 保存了 model + optimizer + config，但没有 RNG 状态；未找到可完整重建 epoch 1–10 的训练曲线。不要补造缺失记录。
+- Original path: `outputs/checkpoints/best_model.pt` (retained for the old notebooks, no longer used as an output for new training).
+- Frozen copy: `outputs/baselines/unet_10ep/best.pt` (read-only copy).
+- SHA-256: `8c4495b60647e49ede8c315c6c703f5893485938a89e282ac8e9b7f618afe78d`.
+- Saved epoch: 10; update count in the AdamW state: 2000.
+- Saved validation mean foreground Dice: `0.8634774088859558`.
+- Independently verified test mean foreground Dice: `0.8628640993226364`.
+- Evaluation grid: `512 × 416`; Dice is computed per image and per foreground class, then averaged; background is excluded.
+- The old checkpoint saved model + optimizer + config, but no RNG state; no training curves were found that could fully reconstruct epochs 1–10. Do not fabricate missing records.
 
-## 2. nnU-Net v2 2D 参考
+## 2. nnU-Net v2 2D Reference
 
-- 工作区：`data/nnunet/`，单折 fold 0；已有训练和测试预测不重跑、不搬动。
-- 名义训练预算：1000 个固定迭代 epoch，每轮 250 optimizer updates。
-- 已独立复算的测试平均前景 Dice：`0.9201659658868531`。
-- 评估网格：原始图像网格；与手写模型不是统一空间的架构消融。
-- checkpoint 选择统计量、增强、优化器、预处理与训练预算均不同。
+- Workspace: `data/nnunet/`, a single fold (fold 0); do not rerun or move the existing training and test predictions.
+- Nominal training budget: 1000 fixed-iteration epochs, with 250 optimizer updates per epoch.
+- Independently recomputed test mean foreground Dice: `0.9201659658868531`.
+- Evaluation grid: the original image grid; the comparison with the hand-built model is not an architecture ablation in a common spatial domain.
+- The checkpoint selection statistic, augmentation, optimizer, preprocessing, and training budget all differ.
 
-## 3. 本次手写 U-Net 续训结果（已完成）
+## 3. Results of This Resumed Hand-built U-Net Run (Completed)
 
-**2026-09-20 已完成累计50轮。核对了40行真实记录（epoch11–50）、最后checkpoint的10000次更新以及最佳checkpoint的epoch23 / 4600次更新。独立加载最佳模型重新评估50位验证患者、200张图，结果与训练记录一致。**
+**A cumulative total of 50 epochs was completed on 2026-09-20. Verification covered 40 rows of actual records (epochs 11–50), 10000 updates in the final checkpoint, and epoch 23 / 4600 updates in the best checkpoint. The best model was independently loaded and reevaluated on 50 validation patients and 200 images, with results matching the training records.**
 
-| 验证集指标 | 原10轮基线 | 本次最佳（第23轮） |
+| Validation metric | Original 10-epoch baseline | Best in this run (epoch 23) |
 |---|---:|---:|
-| 左心室腔 Dice | 0.9138 | 0.9258 |
-| 心肌 Dice | 0.8206 | 0.8404 |
-| 左心房 Dice | 0.8560 | 0.8949 |
-| 平均前景 Dice | 0.8635 | **0.8870** |
+| Left ventricular cavity Dice | 0.9138 | 0.9258 |
+| Myocardium Dice | 0.8206 | 0.8404 |
+| Left atrium Dice | 0.8560 | 0.8949 |
+| Mean foreground Dice | 0.8635 | **0.8870** |
 
-平均前景验证 Dice 增加 **2.3530 个百分点**。本次没有评估测试集，不能与历史测试分数0.8629混用。
+Validation mean foreground Dice increased by **2.3530 percentage points**. The test set was not evaluated in this run; these results must not be conflated with the historical test score of 0.8629.
 
-第50轮验证平均 Dice 为 **0.8770**，低于第23轮；同期间训练loss由0.1863降至0.0616，验证loss由0.2625升至0.4169。这组趋势与后期过拟合一致，不支持简单继续堆轮数。
+Validation mean Dice at epoch 50 was **0.8770**, lower than at epoch 23; over the same interval, training loss fell from 0.1863 to 0.0616, while validation loss rose from 0.2625 to 0.4169. These trends are consistent with late-stage overfitting and do not support simply adding more epochs.
 
-![续训曲线：验证集，不是测试集](assets/unet_resume10_to50_curves.png)
+![Resumed training curves: validation set, not test set](assets/unet_resume10_to50_curves.png)
 
-可版本化证据：[完整指标与来源JSON](results/unet_resume10_to50.json) · [逐轮CSV](results/unet_resume10_to50_history.csv)。曲线和指标随代码版本化，权重和原始数据仍保留在Git忽略目录。发布版本以Git提交记录为准；结果JSON中的代码标识记录的是训练时的工作区，而不是后续发布提交。
+Version-controlled evidence: [Full metrics and provenance JSON](results/unet_resume10_to50.json) · [Per-epoch CSV](results/unet_resume10_to50_history.csv). Curves and metrics are versioned alongside the code, while weights and raw data remain in Git-ignored directories. The Git commit history identifies the published version; the code identifier in the results JSON records the workspace at training time, not a later publication commit.
 
-### 固定设置与产物
+### Fixed Settings and Artifacts
 
-- 实验目录：`outputs/runs/unet_resume10_to50_seed42/`。
-- 保留原epoch10，恢复模型与AdamW；本段执行40轮，累计目标50轮。
-- 模型、loss、batch8、lr`1e-3`、weight decay`1e-4`、输入`512×416`、无增强/无scheduler/无AMP保持不变。
-- Seed42仅用于缺失旧RNG后的续训阶段；新checkpoint保存RNG，不声称原10轮使用此seed。
-- `baseline.pt`：原epoch10；`best.pt`：验证最优epoch23；`last.pt`：epoch50完整状态。
-- `history.csv`只包含实际记录的epoch11–50，旧epoch10验证指标单独保存和绘制。
-- 训练前47项测试通过，训练逻辑通过独立审查；原权重SHA256未变，执行代码hash与启动记录一致。
-- 每轮训练+验证计时累计约16.05分钟，不含全部保存与启动开销。
+- Experiment directory: `outputs/runs/unet_resume10_to50_seed42/`.
+- Preserved the original epoch 10 checkpoint and restored the model and AdamW; this segment ran for 40 epochs, with a cumulative target of 50 epochs.
+- The model, loss, batch size 8, learning rate `1e-3`, weight decay `1e-4`, input dimensions `512×416`, and absence of augmentation/scheduler/AMP remained unchanged.
+- Seed 42 applies only to resumed training because the old RNG state was missing; new checkpoints save the RNG state. No claim is made that the original 10 epochs used this seed.
+- `baseline.pt`: original epoch 10; `best.pt`: validation-best epoch 23; `last.pt`: complete epoch 50 state.
+- `history.csv` contains only the actually recorded epochs 11–50; the old epoch 10 validation metrics are saved and plotted separately.
+- Before training, 47 tests passed and the training logic passed an independent review; the original weights' SHA256 was unchanged, and the executed code hash matched the launch record.
+- Per-epoch training + validation timings totaled approximately 16.05 minutes, excluding some saving and startup overhead.
 
-## 4. 结果解释边界
+## 4. Limits of Interpretation
 
-这次回答“从现有权重继续训练是否改善验证表现”。它不是从头固定 seed 连续跑 50 轮的严格复现，因为原 RNG 状态缺失；也不是多 seed 稳定性结论。
+This experiment addresses whether continuing training from the existing weights improves validation performance. It is not a strict reproduction of an uninterrupted 50-epoch run from scratch with a fixed seed, because the original RNG state is missing; nor does it establish stability across multiple seeds.
 
-本次验证最佳为epoch23，而不是最后一轮。延长训练初期带来验证收益，但后期没有继续改善；验证分数提高不等于测试必然提高。模型与预算选择不依据测试集追分。
+The validation-best checkpoint in this run was epoch 23, not the final epoch. Extending training initially improved validation performance, but later training brought no further improvement; a higher validation score does not guarantee a higher test score. Model and budget selection must not be driven by attempts to improve test scores.
 
-现有测试病例已做过描述性失败分析。若未来用这些病例反复调参，需明确探索性性质，并寻求独立验证。
+The existing test cases have already undergone descriptive failure analysis. If these cases are used for repeated tuning in the future, that work must be explicitly described as exploratory and independently validated.
 
-## 5. 文件来源
+## 5. File Provenance
 
-旧指标来源为本地独立审查的 `verified_metrics.json`（2026-09-19）和冻结checkpoint；新指标来自本次run的history、summary、best/last checkpoint及独立validation.json复算，并导出至上方docs/results。
+The old metrics come from the locally and independently reviewed `verified_metrics.json` (2026-09-19) and the frozen checkpoint. The new metrics come from this run's history, summary, best/last checkpoints, and independent recomputation in validation.json, and were exported to docs/results as linked above.
 
-操作与文件含义见 [training.md](training.md)。
+See [training.md](training.md) for commands and file descriptions.
