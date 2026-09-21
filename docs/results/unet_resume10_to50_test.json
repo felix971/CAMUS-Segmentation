@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "checkpoint": {
+    "path": "outputs/runs/unet_resume10_to50_seed42/best.pt",
+    "sha256": "c53cbf583651fca20a14e4fdcc534b499850b997e91c4796169c898cd24bd21d",
+    "epoch": 23,
+    "mean_validation_dice": 0.8870071768760681
+  },
+  "split": {
+    "name": "test",
+    "path": "data/splits/subgroup_testing.txt",
+    "sha256": "29defd985d96fd4d5c8e16f02d770d337dfa9341ce6125ad9cbdac6c82499c0a",
+    "patients": 50,
+    "samples": 200
+  },
+  "inference": {
+    "device": "cuda",
+    "batch_size": 8,
+    "batches": 25,
+    "image_size": [
+      512,
+      416
+    ]
+  },
+  "metric_protocol": {
+    "grid": "resized",
+    "prediction": "argmax",
+    "foreground_class_ids": [
+      1,
+      2,
+      3
+    ],
+    "background_excluded": true,
+    "smooth": 1e-06,
+    "empty_class_score": 1.0,
+    "reduction": "per-image Dice, mean over samples, then mean over foreground classes",
+    "image_interpolation": "bilinear",
+    "image_align_corners": false,
+    "mask_interpolation": "nearest",
+    "loss": "DiceCrossEntropyLoss",
+    "loss_reduction": "sample-weighted mean of batch losses"
+  },
+  "metrics": {
+    "loss": 0.2822867453098297,
+    "foreground_dice": {
+      "Left ventricular cavity": 0.9187788963317871,
+      "Myocardium": 0.8388360142707825,
+      "Left atrium": 0.8754532337188721
+    },
+    "mean_foreground_dice": 0.8776893615722656
+  }
+}

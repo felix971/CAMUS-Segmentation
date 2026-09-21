@@ -47,13 +47,30 @@ The epoch-10 model and AdamW state were restored and training completed through
 **epoch 50 / 10,000 cumulative updates**. The validation-selected best is
 **epoch 23**, not the final checkpoint. Independently recomputed mean foreground
 validation Dice increased from **0.8635 to 0.8870** (+2.35 percentage points)
-on 50 validation patients / 200 images. **The new model has not been tested on
-the test split.** Later training loss continued falling while validation loss
-rose; further budget alone is not supported by this curve.
+on 50 validation patients / 200 images. Later training loss continued falling
+while validation loss rose; further budget alone is not supported by this curve.
+
+On 2026-09-21, the fixed epoch-23 checkpoint was evaluated on the existing
+**50 test patients / 200 images**, using the same resized-grid protocol as the
+original hand-built baseline. Test mean foreground Dice increased from
+**0.8629 to 0.8777** (+1.48 percentage points). No training or checkpoint
+reselection was performed during this test evaluation.
+
+| Test Dice | Original epoch 10 | Validation-selected epoch 23 |
+|---|---:|---:|
+| Left ventricular cavity | 0.9089 | 0.9188 |
+| Myocardium | 0.8199 | 0.8388 |
+| Left atrium | 0.8598 | 0.8755 |
+| Mean foreground | 0.8629 | **0.8777** |
+
+The test cohort had previously been used for baseline evaluation and descriptive
+failure analysis; it is not a newly collected or never-inspected cohort.
+The nnU-Net comparison still uses different training recipes and evaluation grids.
 
 [Recorded curves and interpretation](docs/experiments.md) ·
 [Metrics + provenance JSON](docs/results/unet_resume10_to50.json) ·
-[Epoch history CSV](docs/results/unet_resume10_to50_history.csv)
+[Epoch history CSV](docs/results/unet_resume10_to50_history.csv) ·
+[Epoch-23 test report](docs/results/unet_resume10_to50_test.json)
 
 New runs belong in `outputs/runs/<run-name>/`, never in the old checkpoint directory.
 

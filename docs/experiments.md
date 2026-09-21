@@ -30,7 +30,7 @@
 | Left atrium Dice | 0.8560 | 0.8949 |
 | Mean foreground Dice | 0.8635 | **0.8870** |
 
-Validation mean foreground Dice increased by **2.3530 percentage points**. The test set was not evaluated in this run; these results must not be conflated with the historical test score of 0.8629.
+Validation mean foreground Dice increased by **2.3530 percentage points**. The training run used only the training and validation splits; its validation results must not be conflated with the separate test evaluation below.
 
 Validation mean Dice at epoch 50 was **0.8770**, lower than at epoch 23; over the same interval, training loss fell from 0.1863 to 0.0616, while validation loss rose from 0.2625 to 0.4169. These trends are consistent with late-stage overfitting and do not support simply adding more epochs.
 
@@ -49,6 +49,21 @@ Version-controlled evidence: [Full metrics and provenance JSON](results/unet_res
 - Before training, 47 tests passed and the training logic passed an independent review; the original weights' SHA256 was unchanged, and the executed code hash matched the launch record.
 - Per-epoch training + validation timings totaled approximately 16.05 minutes, excluding some saving and startup overhead.
 
+### Subsequent Test Evaluation of the Fixed Epoch-23 Checkpoint
+
+On 2026-09-21, the already selected `best.pt` was evaluated once on the existing test split: **50 patients / 200 images**, batch size 8, input dimensions `512 × 416`. The checkpoint SHA-256 remained `c53cbf583651fca20a14e4fdcc534b499850b997e91c4796169c898cd24bd21d`, matching the earlier validation report. No weights were updated and no checkpoint was reselected from test results.
+
+| Test metric | Original epoch 10 | Selected epoch 23 |
+|---|---:|---:|
+| Left ventricular cavity Dice | 0.9089 | 0.9188 |
+| Myocardium Dice | 0.8199 | 0.8388 |
+| Left atrium Dice | 0.8598 | 0.8755 |
+| Mean foreground Dice | 0.8629 | **0.8777** |
+
+The new test mean foreground Dice is `0.8776893615722656`, a gain of **1.4825 percentage points** over the independently verified old baseline. Test Dice + CrossEntropy loss is `0.2822867453098297`. The per-image, foreground-only resized-grid protocol is unchanged; this is an observed improvement on this test cohort, not evidence of multi-seed stability or statistical significance.
+
+The original report is `outputs/runs/unet_resume10_to50_seed42/test.json`. The [versionable test report](results/unet_resume10_to50_test.json) preserves its metrics, hashes, counts, and protocol, changing only absolute local paths to repository-relative paths. The report also contains `checkpoint.mean_validation_dice` as selection metadata; the actual test score is `metrics.mean_foreground_dice` with `split.name` set to `test`.
+
 ## 4. Limits of Interpretation
 
 This experiment addresses whether continuing training from the existing weights improves validation performance. It is not a strict reproduction of an uninterrupted 50-epoch run from scratch with a fixed seed, because the original RNG state is missing; nor does it establish stability across multiple seeds.
@@ -59,6 +74,6 @@ The existing test cases have already undergone descriptive failure analysis. If 
 
 ## 5. File Provenance
 
-The old metrics come from the locally and independently reviewed `verified_metrics.json` (2026-09-19) and the frozen checkpoint. The new metrics come from this run's history, summary, best/last checkpoints, and independent recomputation in validation.json, and were exported to docs/results as linked above.
+The old metrics come from the locally and independently reviewed `verified_metrics.json` (2026-09-19) and the frozen checkpoint. The new validation metrics come from this run's history, summary, best/last checkpoints, and independent recomputation in validation.json. The subsequent test metrics come from the explicit epoch-23 evaluation in test.json. Versionable copies are linked above in docs/results.
 
 See [training.md](training.md) for commands and file descriptions.

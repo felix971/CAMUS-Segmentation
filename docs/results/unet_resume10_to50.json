@@ -1,7 +1,7 @@
 {
   "experiment": "unet_resume10_to50_seed42",
   "verified_on": "2026-09-20",
-  "status": "completed_and_validation_recomputed",
+  "status": "completed_validation_recomputed_and_test_evaluated",
   "run_directory": "outputs/runs/unet_resume10_to50_seed42",
   "continuation": {
     "source_epoch": 10,
@@ -137,9 +137,13 @@
     },
     "source_checkpoint_sha256": "8c4495b60647e49ede8c315c6c703f5893485938a89e282ac8e9b7f618afe78d"
   },
-  "test_evaluated": false,
+  "test_evaluated": true,
+  "test_evaluated_on": "2026-09-21",
+  "test_report": "docs/results/unet_resume10_to50_test.json",
+  "test_mean_gain_percentage_points": 1.4825262249629212,
   "limitations": [
-    "Validation-selected single-run result, not held-out test performance.",
+    "Single-run result: validation selected the checkpoint; the fixed checkpoint was subsequently evaluated on the existing test cohort.",
+    "The test cohort was previously used for baseline evaluation and descriptive failure analysis, not a never-inspected cohort.",
     "Legacy epoch10 lacks RNG state, so continuation seed42 is not an exact replay from epoch1.",
     "Resized-grid metrics; not a controlled architecture comparison with nnU-Net.",
     "History contains only actual epochs11-50; no invented epochs1-10."
